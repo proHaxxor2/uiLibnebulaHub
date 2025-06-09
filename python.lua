@@ -1,17 +1,177 @@
-local gameServices = game:GetService
-local coreInterface = gameServices("CoreGui")
-local inputManager = gameServices("UserInputService")
-local playerRegistry = gameServices("Players")
-local networkHandler = gameServices("HttpService")
-
+local gameServices = game.GetService
+local coreInterface = gameServices(game, "CoreGui")
+local inputManager = gameServices(game, "UserInputService")
+local playerRegistry = gameServices(game, "Players")
+local networkHandler = gameServices(game, "HttpService")
 -- Fallback for cloneref if unavailable
 if not cloneref then
     cloneref = function(obj) return obj end
 end
 
--- Load custom UI asset (placeholder rbxassetid)
-local baseUI = game:GetObjects("rbxassetid://12345678901234")[1]
-if not baseUI then error("UI asset not found") end
+-- Create base UI programmatically
+local function createBaseUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "NebulaHub"
+    screenGui.ResetOnSpawn = false
+    
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 400, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(1, 0, 0, 30)
+    titleLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextSize = 18
+    titleLabel.Font = Enum.Font.SourceSansBold
+    titleLabel.Text = "Nebula Hub"
+    titleLabel.Parent = mainFrame
+    
+    local panelsContainer = Instance.new("Frame")
+    panelsContainer.Name = "Panels"
+    panelsContainer.Size = UDim2.new(1, 0, 1, -30)
+    panelsContainer.Position = UDim2.new(0, 0, 0, 30)
+    panelsContainer.BackgroundTransparency = 1
+    panelsContainer.Parent = mainFrame
+    
+    -- Switch template
+    local switchTemplate = Instance.new("TextButton")
+    switchTemplate.Name = "Switch"
+    switchTemplate.Size = UDim2.new(1, -10, 0, 30)
+    switchTemplate.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    switchTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)
+    switchTemplate.TextSize = 14
+    switchTemplate.Font = Enum.Font.SourceSans
+    switchTemplate.Text = ""
+    
+    local switchText = Instance.new("TextLabel")
+    switchText.Name = "Text"
+    switchText.Size = UDim2.new(0.8, 0, 1, 0)
+    switchText.BackgroundTransparency = 1
+    switchText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    switchText.TextSize = 14
+    switchText.Font = Enum.Font.SourceSans
+    switchText.TextXAlignment = Enum.TextXAlignment.Left
+    switchText.Parent = switchTemplate
+    
+    local switchState = Instance.new("TextLabel")
+    switchState.Name = "State"
+    switchState.Size = UDim2.new(0.2, 0, 1, 0)
+    switchState.Position = UDim2.new(0.8, 0, 0, 0)
+    switchState.BackgroundTransparency = 1
+    switchState.TextColor3 = Color3.fromRGB(0, 255, 0)
+    switchState.TextSize = 14
+    switchState.Font = Enum.Font.SourceSans
+    switchState.TextXAlignment = Enum.TextXAlignment.Right
+    switchState.Parent = switchTemplate
+    
+    switchTemplate.Parent = mainFrame
+    
+    -- Range template
+    local rangeTemplate = Instance.new("Frame")
+    rangeTemplate.Name = "Range"
+    rangeTemplate.Size = UDim2.new(1, -10, 0, 50)
+    rangeTemplate.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    
+    local rangeLabel = Instance.new("TextLabel")
+    rangeLabel.Name = "Label"
+    rangeLabel.Size = UDim2.new(1, 0, 0, 20)
+    rangeLabel.BackgroundTransparency = 1
+    rangeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    rangeLabel.TextSize = 14
+    rangeLabel.Font = Enum.Font.SourceSans
+    rangeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    rangeLabel.Parent = rangeTemplate
+    
+    local rangeBar = Instance.new("Frame")
+    rangeBar.Name = "Bar"
+    rangeBar.Size = UDim2.new(1, -10, 0, 10)
+    rangeBar.Position = UDim2.new(0, 5, 0, 25)
+    rangeBar.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    rangeBar.Parent = rangeTemplate
+    
+    local rangeValue = Instance.new("TextLabel")
+    rangeValue.Name = "Value"
+    rangeValue.Size = UDim2.new(0, 50, 0, 20)
+    rangeValue.Position = UDim2.new(1, -55, 0, 0)
+    rangeValue.BackgroundTransparency = 1
+    rangeValue.TextColor3 = Color3.fromRGB(255, 255, 255)
+    rangeValue.TextSize = 14
+    rangeValue.Font = Enum.Font.SourceSans
+    rangeValue.Parent = rangeTemplate
+    
+    rangeTemplate.Parent = mainFrame
+    
+    -- Selector template
+    local selectorTemplate = Instance.new("Frame")
+    selectorTemplate.Name = "Selector"
+    selectorTemplate.Size = UDim2.new(1, -10, 0, 30)
+    selectorTemplate.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    
+    local selectorTitle = Instance.new("TextLabel")
+    selectorTitle.Name = "Title"
+    selectorTitle.Size = UDim2.new(0.8, 0, 1, 0)
+    selectorTitle.BackgroundTransparency = 1
+    selectorTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    selectorTitle.TextSize = 14
+    selectorTitle.Font = Enum.Font.SourceSans
+    selectorTitle.TextXAlignment = Enum.TextXAlignment.Left
+    selectorTitle.Parent = selectorTemplate
+    
+    local selectorCurrent = Instance.new("TextLabel")
+    selectorCurrent.Name = "Current"
+    selectorCurrent.Size = UDim2.new(0.2, 0, 1, 0)
+    selectorCurrent.Position = UDim2.new(0.8, 0, 0, 0)
+    selectorCurrent.BackgroundTransparency = 1
+    selectorCurrent.TextColor3 = Color3.fromRGB(255, 255, 255)
+    selectorCurrent.TextSize = 14
+    selectorCurrent.Font = Enum.Font.SourceSans
+    selectorCurrent.TextXAlignment = Enum.TextXAlignment.Right
+    selectorCurrent.Parent = selectorTemplate
+    
+    local selectorClick = Instance.new("TextButton")
+    selectorClick.Name = "ClickArea"
+    selectorClick.Size = UDim2.new(1, 0, 1, 0)
+    selectorClick.BackgroundTransparency = 1
+    selectorClick.Text = ""
+    selectorClick.Parent = selectorTemplate
+    
+    local selectorOptions = Instance.new("Frame")
+    selectorOptions.Name = "Options"
+    selectorOptions.Size = UDim2.new(1, 0, 0, 100)
+    selectorOptions.Position = UDim2.new(0, 0, 1, 0)
+    selectorOptions.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    selectorOptions.Visible = false
+    selectorOptions.Parent = selectorTemplate
+    
+    selectorTemplate.Parent = mainFrame
+    
+    -- Option template
+    local optionTemplate = Instance.new("TextButton")
+    optionTemplate.Name = "Option"
+    optionTemplate.Size = UDim2.new(1, 0, 0, 25)
+    optionTemplate.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    optionTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)
+    optionTemplate.TextSize = 14
+    optionTemplate.Font = Enum.Font.SourceSans
+    optionTemplate.Parent = mainFrame
+    
+    -- Action template
+    local actionTemplate = Instance.new("TextButton")
+    actionTemplate.Name = "Action"
+    actionTemplate.Size = UDim2.new(1, -10, 0, 30)
+    actionTemplate.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    actionTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)
+    actionTemplate.TextSize = 14
+    actionTemplate.Font = Enum.Font.SourceSans
+    actionTemplate.Parent = mainFrame
+    
+    return screenGui
+end
 
 -- Core Hub class
 local NebulaHub = {}
@@ -65,7 +225,7 @@ function NebulaHub.new(config)
     local hub = setmetatable({}, NebulaHub)
     hub.elements = {}
     hub.state = {visible = config.visibleByDefault, configData = isfile("NebulaHub1.config") and networkHandler:JSONDecode(readfile("NebulaHub1.config")) or {}}
-    hub.root = baseUI:Clone()
+    hub.root = createBaseUI()
     hub.root.Title.Text = config.title
     hub.root.Parent = config.container
 
